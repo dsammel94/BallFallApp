@@ -33,7 +33,6 @@ class GameWidget(Widget):
     walls = ListProperty([])
 
     def on_touch_down(self, touch):
-        print("woah dude")
         if self.collide_point(*touch.pos):
             self.draw_ball(touch.pos)
             self.draw_walls()
@@ -61,21 +60,13 @@ class GameWidget(Widget):
         return time <= 1 and x1 <= x0+BALL_SIZE and x2 >= x0+BALL_RADIUS
 
     def draw_ball(self, pos):
-        #if not self.ball:
         if len(self.balls) > NUM_BALLS - 1:
             self.clear_widgets(children=[self.balls[0]])
             self.balls = self.balls[1:]
         newBall = Ball()
-        print("created ball")
         newBall.center = pos
         self.add_widget(newBall)
         self.balls.append(newBall)
-        # elif self.ball.disabled:
-        #     self.ball.center = pos
-        #     self.ball.opacity = 1
-        #     self.ball.disabled = False
-        #     self.ball.vx = 0
-        #     self.ball.vy = 0
 
     def animate(self, dt):
         for ball in self.balls:
@@ -90,14 +81,8 @@ class GameWidget(Widget):
                 ball.bounce_timer = 5
                 ball.y = 0
                 ball.vy *= -.9
-                #self.ball.opacity = 0
-                #self.ball.disabled = True
             if  ball.x < 0 or ball.x > self.width - BALL_SIZE:
                 ball.vx *= -1
-    #
-    # def render_ball(self, ball):
-    #     with self.canvas:
-    #         Circle()
 
 class Ball(Widget):
     bounce_timer = 0
@@ -113,10 +98,8 @@ class Ball(Widget):
         if not self.disabled:
             if self.bounce_timer > 0:
                 self.bounce_timer -= 1
-            #print(self.pos)
             self.pos = Vector(*self.vel) + self.pos
             self.vy -= GRAVITY
-            # self.vy += self.acc
 
     def bounce(self, wall):
         n = perpendicular(normalize([wall.pt2[0]-wall.pt1[0],wall.pt2[1]-wall.pt1[1]]))
@@ -134,22 +117,9 @@ class Wall():
         self.length = math.sqrt(((self.pt1[0]-self.pt2[0])**2)+((self.pt1[1]-self.pt2[1])**2))
         self.slope = (self.pt2[1]-self.pt1[1])/(self.pt2[0]-self.pt1[0])
 
-    pass
-    # pt1 = [100,100]
-    # pt2 = [200,200]
-    # length = NumericProperty(math.sqrt(((pt1[0]+pt2[0])**2)+((pt1[1]+pt2[1])**2)))
-    # print(length)
-    # width = NumericProperty(1.0)
-    # size = ReferenceListProperty(length, width)
-
 class BallFallApp(App):
     def build(self):
         self.root = root = GameWidget()
-        # root.bind(pos=self.update_rect, size=self.update_rect)
-        #
-        # with root.canvas.before:
-        #     Color(1,1,1,1)
-        #     self.rect = Rectangle(pos=root.pos,size=root.size)
         Clock.schedule_interval(root.animate, 1.0/60.0)
         return root
 
