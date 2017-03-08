@@ -15,7 +15,7 @@ class MyScreenManager(ScreenManager):
 
 class GameScreen(Screen):
     walls = [[100,100,300,300],[300,300,500,100]]
-    coins = [[100,200]]
+    coins = [[100,200], [350,100], [100,350], [600,200], [234,154]]
 
 
 class GameWidget(Widget):
@@ -68,14 +68,19 @@ class GameWidget(Widget):
             self.add_widget(newCoin)
             self.coins.append(newCoin)
 
+    def remove_coin(self, coin):
+        self.remove_widget(coin)
+        self.coins.remove(coin)
+
     def animate(self, dt):
         for ball in self.balls:
             ball.move()
             for wall in self.walls:
                 if ball.bounce_timer == 0 and self.collide_wall(ball ,wall):
                     ball.bounce(wall)
-            # for coin in self.coins:
-            #     if ball.collide_widget(coin)
+            for coin in self.coins:
+                if ball.collide_widget(coin):
+                    self.remove_coin(coin)
 
             if ball.bounce_timer == 0 and ball.center_y - BALL_RADIUS <= 0:
                 ball.bounce_timer = 5
