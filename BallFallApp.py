@@ -5,59 +5,52 @@ from kivy.uix.scatter import Scatter
 from kivy.clock import Clock
 from kivy.graphics import *
 from kivy.properties import ListProperty, ObjectProperty,NumericProperty, ReferenceListProperty
+from kivy.uix.screenmanager import ScreenManager, Screen
 from constants import *
 from kivy.vector import Vector
-import math
+from mathUtils import *
 
-def perpendicular(a):
-    return [a[1], -1*a[0]]
+class MyScreenManager(ScreenManager):
+    pass
 
-def mag(a):
-    return math.sqrt(sum(a[i]*a[i] for i in range(len(a))))
+class GameScreen(Screen):
+    walls = [[100,100,300,300],[300,300,500,100]]
+    coins = [[100,200]]
 
-def dot(a, b):
-    return sum(a[i]*b[i] for i in range(len(a)))
-
-def scalar_mult(a, b):
-    return [b*a for a in a]
-
-def sub(a,b):
-    return [a[i]-b[i] for i in range(len(a))]
-
-def normalize(a):
-    m = mag(a)
-    return [a[i]/m for i in range(len(a))]
 
 class GameWidget(Widget):
     balls = ListProperty([])
     walls = ListProperty([])
+    coins = ListProperty([])
 
     def on_touch_down(self, touch):
         if self.collide_point(*touch.pos):
             self.draw_ball(touch.pos)
             self.draw_walls()
+            self.draw_coins()
             return True
         return super(GameWidget, self).on_touch_down(touch)
 
     def draw_walls(self):
-        w = Wall([100,100,300,600])
-        with self.canvas:
-            Color(0,0,0,1)
-            Line(points=w.pt1+w.pt2)
-        self.walls.append(w)
+        for wall in self.parent.walls:
+            w = Wall(wall)
+            with self.canvas:
+                Color(0,0,0,1)
+                Line(points=w.pt1+w.pt2)
+            self.walls.append(w)
 
     def collide_wall(self, ball, wall):
         x1 = wall.pt1[0]
         y1 = wall.pt1[1]
         x2 = wall.pt2[0]
         y2 = wall.pt2[1]
-        x0 = ball.x + ball.vx
-        y0 = ball.y + ball.vy
+        x0 = ball.center_x + ball.vx
+        y0 = ball.center_y + ball.vy
         top = abs((y2 - y1)*x0 - (x2-x1)*y0 + x2*y1 - y2*x1)
         bot = math.sqrt(((y2-y1)**2) + ((x2-x1)**2))
-        dist = top/bot
+        dist = (top/bot) - BALL_RADIUS
         time = dist/abs(math.sqrt(ball.vx**2+ball.vy**2))
-        return time <= 1 and x1 <= x0+BALL_SIZE and x2 >= x0+BALL_RADIUS
+        return time <= 1 and x1 <= x0+BALL_RADIUS and x2 >= x0-BALL_RADIUS
 
     def draw_ball(self, pos):
         if len(self.balls) > NUM_BALLS - 1:
@@ -68,21 +61,32 @@ class GameWidget(Widget):
         self.add_widget(newBall)
         self.balls.append(newBall)
 
+    def draw_coins(self):
+        for coin in self.parent.coins:
+            newCoin = Coin()
+            newCoin.center = (coin[0],coin[1])
+            self.add_widget(newCoin)
+            self.coins.append(newCoin)
+
     def animate(self, dt):
         for ball in self.balls:
             ball.move()
             for wall in self.walls:
                 if ball.bounce_timer == 0 and self.collide_wall(ball ,wall):
                     ball.bounce(wall)
-                    ball.bounce_timer = 1
+            # for coin in self.coins:
+            #     if ball.collide_widget(coin)
 
-
-            if ball.bounce_timer == 0 and ball.y-ball.r <= 0:
+            if ball.bounce_timer == 0 and ball.center_y - BALL_RADIUS <= 0:
                 ball.bounce_timer = 5
                 ball.y = 0
                 ball.vy *= -.9
-            if  ball.x < 0 or ball.x > self.width - BALL_SIZE:
+            if  ball.x < 0 or ball.x + BALL_SIZE > self.width:
                 ball.vx *= -1
+
+class Coin(Widget):
+    d = COIN_SIZE
+    r = d/2
 
 class Ball(Widget):
     bounce_timer = 0
@@ -107,6 +111,7 @@ class Ball(Widget):
         new = sub(scalar_mult(n, (2*dot(n, v))),v)
         self.vx = -.9*new[0]
         self.vy = -.9*new[1]
+        self.bounce_timer = 1
 
 class Wall():
 
@@ -119,8 +124,8 @@ class Wall():
 
 class BallFallApp(App):
     def build(self):
-        self.root = root = GameWidget()
-        Clock.schedule_interval(root.animate, 1.0/60.0)
+        self.root = root = MyScreenManager()
+        Clock.schedule_interval(self.root.ids['gameWidget'].animate, 1.0/60.0)
         return root
 
     def update_rect(self,instance, value):

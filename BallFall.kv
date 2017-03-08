@@ -9,8 +9,21 @@
             pos: self.pos
             size: self.size
 
-<GameWidget>:
+<Coin>:
+    size: self.d, self.d
     canvas:
-        Rectangle:
+        Color:
+            rgba: (.95,.85, .25,1)
+        Ellipse:
             pos: self.pos
             size: self.size
+
+<ScreenManager>:
+    GameScreen:
+        name: 'gameScreen'
+        GameWidget:
+            id: gameWidget
+            canvas:
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
