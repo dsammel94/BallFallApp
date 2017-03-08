@@ -1,0 +1,31 @@
+#:kivy 1.0.9
+#:import ReferenceListProperty kivy.properties.ReferenceListProperty
+<Ball>:
+    size: self.d, self.d
+    canvas:
+        Color:
+            rgba: (1,0,0,1)
+        Ellipse:
+            pos: self.pos
+            size: self.size
+
+# <Wall>:
+#     size_hint: None, None
+#     do_rotation: False
+#     do_scale: False
+#     do_translation: True
+#     rotation: 1.0
+#     pos: (200,200)
+#     size: (100, 1)
+#     canvas:
+#         Color:
+#             rgba: (0,0,0,1)
+#         Rectangle:
+#             pos:self.pos
+#             size: self.size
+
+<GameWidget>:
+    canvas:
+        Rectangle:
+            pos: self.pos
+            size: self.size
